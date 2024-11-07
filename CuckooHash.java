@@ -1,6 +1,7 @@
 /******************************************************************
  *
  *   YOUR NAME / SECTION NUMBER
+ *   Ethan Grassia / Section 001
  *
  *   Note, additional comments provided throughout this source code
  *   is for educational purposes
@@ -245,14 +246,46 @@ public class CuckooHash<K, V> {
 	 */
 
  	public void put(K key, V value) {
-
 		// ADD YOUR CODE HERE - DO NOT FORGET TO ADD YOUR NAME AT TOP OF FILE.
 		// Also make sure you read this method's prologue above, it should help
 		// you. Especially the two HINTS in the prologue.
 
-		return;
-	}
+		int pos1 = hash1(key);
+        int pos2 = hash2(key);
 
+        // Check if key-value pair already exists
+        if (table[pos1] != null && table[pos1].getBucKey().equals(key) && table[pos1].getValue().equals(value)) {
+            return;
+        }
+        if (table[pos2] != null && table[pos2].getBucKey().equals(key) && table[pos2].getValue().equals(value)) {
+            return;
+        }
+
+        // Initialize bucket to insert
+        Bucket<K, V> newBucket = new Bucket<>(key, value);
+        for (int i = 0; i < CAPACITY; i++) {
+            // Check the first hash position
+            if (table[pos1] == null) {
+                table[pos1] = newBucket;
+                return;
+            }
+
+            // Swap with the existing bucket and move displaced bucket to the next position
+            Bucket<K, V> displacedBucket = table[pos1];
+            table[pos1] = newBucket;
+            newBucket = displacedBucket;
+            pos1 = (pos1 == hash1(newBucket.getBucKey())) ? hash2(newBucket.getBucKey()) : hash1(newBucket.getBucKey());
+
+            // Place the displaced bucket in its new position
+            if (table[pos1] == null) {
+                table[pos1] = newBucket;
+                return;
+            }
+        }
+
+        rehash();
+        put(newBucket.getBucKey(), newBucket.getValue());
+	}
 
 	/**
 	 * Method get
